@@ -79,7 +79,7 @@ function Login() {
 
                 setMessageType("success");
 
-                setTimeout(() => {\
+                setTimeout(() => {
                     setEmail("");
                     setPassword("");
                     navigate("/dashboard");
