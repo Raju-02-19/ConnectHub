@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FiMail, FiLock, FiEye, FiEyeOff, FiLogIn } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
     const navigate = useNavigate();
@@ -9,6 +10,8 @@ function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [message, setMessage] = useState("");
+    const [messageType, setMessageType] = useState("");
 
     const isValidEmail =
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -17,12 +20,14 @@ function Login() {
         e.preventDefault();
 
         if (!email || !password) {
-           
+            setMessage("Please enter email and password");
+            setMessageType("warning");
             return;
         }
 
         if (!isValidEmail) {
-           
+            setMessage("Enter a valid email address");
+            setMessageType("danger");
             return;
         }
 
@@ -35,8 +40,6 @@ function Login() {
                     password,
                 }
             );
-
-
 
             if (
                 response.data.message ===
@@ -70,25 +73,35 @@ function Login() {
                     response.data.email
                 );
 
+                setMessage(
+                    "Login Successful! Redirecting..."
+                );
 
+                setMessageType("success");
 
-                navigate("/dashboard");
+                setTimeout(() => {\
+                    setEmail("");
+                    setPassword("");
+                    navigate("/dashboard");
+                }, 1500);
 
             } else {
 
-
+                setMessage("Invalid Credentials");
+                setMessageType("danger");
 
             }
 
         } catch (error) {
 
-            console.error(error);
+            setMessage(
+                error.response?.data ||
+                "Login Failed!"
+            );
 
-           
-
+            setMessageType("danger");
         }
     };
-
 
 
     return (
@@ -145,12 +158,26 @@ function Login() {
                                 Login to your account
                             </p>
                         </div>
+                        {message && (
+                            <div
+                                className={`alert alert-${messageType} alert-dismissible fade show`}
+                                role="alert"
+                            >
+                                {message}
 
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => setMessage("")}
+                                ></button>
+                            </div>
+                        )}
                         <form onSubmit={handleSubmit}>
 
                             <div className="form-floating mb-3">
                                 <input
                                     type="email"
+                                    autoComplete="email"
                                     className={`form-control ${email && !isValidEmail
                                         ? "is-invalid"
                                         : email && isValidEmail
@@ -182,7 +209,6 @@ function Login() {
                                 <span className="input-group-text">
                                     <FiLock />
                                 </span>
-
                                 <input
                                     type={
                                         showPassword
@@ -191,6 +217,7 @@ function Login() {
                                     }
                                     className="form-control"
                                     placeholder="Password"
+                                    autoComplete="current-password"
                                     value={password}
                                     onChange={(e) =>
                                         setPassword(e.target.value)
@@ -223,12 +250,12 @@ function Login() {
 
                             <p className="text-center mt-3">
                                 Don't have an account?
-                                <a
-                                    href="/register"
+                                <Link
+                                    to="/register"
                                     className="ms-1 text-decoration-none fw-bold"
                                 >
                                     Register
-                                </a>
+                                </Link>
                             </p>
 
                         </form>
