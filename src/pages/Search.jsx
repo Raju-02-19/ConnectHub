@@ -19,7 +19,7 @@ const Search = () => {
             setLoading(true);
 
             const response = await axios.get(
-                `http://localhost:8080/api/users/search/${userCode}`
+                `https://connecthub-backend-4t3q.onrender.com/api/users/search/${userCode}`
             );
 
             if (!response.data) {
@@ -64,7 +64,7 @@ const Search = () => {
             }
 
             await axios.post(
-                "http://localhost:8080/api/friends/send",
+                "https://connecthub-backend-4t3q.onrender.com/api/friends/send",
                 {
                     senderId: senderCode,
                     receiverId: user.userCode,

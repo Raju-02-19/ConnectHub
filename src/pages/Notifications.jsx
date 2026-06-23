@@ -17,7 +17,7 @@ const Notifications = () => {
         localStorage.getItem("userCode");
 
       const response = await axios.get(
-        `http://localhost:8080/api/friends/requests/${userCode}`
+        `https://connecthub-backend-4t3q.onrender.com/api/friends/requests/${userCode}`
       );
 
       setRequests(response.data);
@@ -34,7 +34,7 @@ const Notifications = () => {
     try {
 
       await axios.put(
-        `http://localhost:8080/api/friends/accept/${requestId}`
+        `https://connecthub-backend-4t3q.onrender.com/api/friends/accept/${requestId}`
       );
 
 
@@ -53,7 +53,7 @@ const Notifications = () => {
     try {
 
       await axios.put(
-        `http://localhost:8080/api/friends/reject/${requestId}`
+        `https://connecthub-backend-4t3q.onrender.com/api/friends/reject/${requestId}`
       );
 
 

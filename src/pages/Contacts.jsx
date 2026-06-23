@@ -23,7 +23,7 @@ const fetchFriends = async () => {
 
         const response =
             await axios.get(
-                `http://localhost:8080/api/friends/list/${myCode}`
+                `https://connecthub-backend-4t3q.onrender.com/api/friends/list/${myCode}`
             );
 
         const friendsList =
@@ -40,7 +40,7 @@ const fetchFriends = async () => {
 
             const userResponse =
                 await axios.get(
-                    `http://localhost:8080/api/users/code/${friendCode}`
+                    `https://connecthub-backend-4t3q.onrender.com/api/users/code/${friendCode}`
                 );
 
             usersData.push(

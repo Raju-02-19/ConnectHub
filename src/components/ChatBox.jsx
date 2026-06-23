@@ -34,7 +34,7 @@ const ChatBox = ({
 
       webSocketFactory: () =>
         new SockJS(
-          "http://localhost:8080/chat"
+          "https://connecthub-backend-4t3q.onrender.com/chat"
         ),
 
       reconnectDelay: 5000,
@@ -133,12 +133,12 @@ const ChatBox = ({
       try {
 
         await axios.put(
-          `http://localhost:8080/api/messages/read/${selectedChat.userCode}/${currentUser.userCode}`
+          `https://connecthub-backend-4t3q.onrender.com/api/messages/read/${selectedChat.userCode}/${currentUser.userCode}`
         );
 
         const response =
           await axios.get(
-            `http://localhost:8080/api/messages/chat/${currentUser.userCode}/${selectedChat.userCode}`
+            `https://connecthub-backend-4t3q.onrender.com/api/messages/chat/${currentUser.userCode}/${selectedChat.userCode}`
           );
 
         setMessages(
@@ -164,7 +164,7 @@ const ChatBox = ({
       try {
 
         await axios.post(
-          "http://localhost:8080/api/messages/send",
+          "https://connecthub-backend-4t3q.onrender.com/api/messages/send",
           {
             senderId:
               currentUser.userCode,

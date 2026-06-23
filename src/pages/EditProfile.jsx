@@ -21,7 +21,7 @@ const EditProfile = () => {
 
             const response =
                 await axios.get(
-                    `http://localhost:8080/api/users/code/${userCode}`
+                    `https://connecthub-backend-4t3q.onrender.com/api/users/code/${userCode}`
                 );
 
             setName(
@@ -56,14 +56,14 @@ const EditProfile = () => {
 
             const userResponse =
                 await axios.get(
-                    `http://localhost:8080/api/users/code/${userCode}`
+                    `https://connecthub-backend-4t3q.onrender.com/api/users/code/${userCode}`
                 );
 
             const userId =
                 userResponse.data.id;
 
             await axios.put(
-                `http://localhost:8080/api/users/update/${userId}`,
+                `https://connecthub-backend-4t3q.onrender.com/api/users/update/${userId}`,
                 {
                     name,
                     bio,

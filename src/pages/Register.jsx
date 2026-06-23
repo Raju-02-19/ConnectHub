@@ -47,7 +47,7 @@ function Register() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/auth/register",
+        "https://connecthub-backend-4t3q.onrender.com/api/auth/register",
         {
           name: formData.name,
           email: formData.email,

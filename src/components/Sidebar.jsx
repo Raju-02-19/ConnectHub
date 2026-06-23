@@ -23,7 +23,7 @@ const Sidebar = ({
 
             const friendsResponse =
                 await axios.get(
-                    `http://localhost:8080/api/friends/list/${myCode}`
+                    `https://connecthub-backend-4t3q.onrender.com/api/friends/list/${myCode}`
                 );
 
             const friends =
@@ -42,7 +42,7 @@ const Sidebar = ({
 
                 const userResponse =
                     await axios.get(
-                        `http://localhost:8080/api/users/code/${friendCode}`
+                        `https://connecthub-backend-4t3q.onrender.com/api/users/code/${friendCode}`
                     );
 
                 const userData =
@@ -50,7 +50,7 @@ const Sidebar = ({
 
                 const msgResponse =
                     await axios.get(
-                        `http://localhost:8080/api/messages/chat/${myCode}/${friendCode}`
+                        `https://connecthub-backend-4t3q.onrender.com/api/messages/chat/${myCode}/${friendCode}`
                     );
 
                 const messages =
@@ -68,7 +68,7 @@ const Sidebar = ({
 
                 const unreadResponse =
                     await axios.get(
-                        `http://localhost:8080/api/messages/unread/${friendCode}/${myCode}`
+                        `https://connecthub-backend-4t3q.onrender.com/api/messages/unread/${friendCode}/${myCode}`
                     );
 
                 const unreadCount =
@@ -144,7 +144,7 @@ const Sidebar = ({
 
 
                             await axios.put(
-                                `http://localhost:8080/api/users/offline/${userCode}`
+                                `https://connecthub-backend-4t3q.onrender.com/api/users/offline/${userCode}`
                             );
 
                         } catch (error) {
