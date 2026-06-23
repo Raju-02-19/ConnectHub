@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#4F46E5"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Chat Bubble -->
+  <path d="M32 8C19 8 8 18 8 31C8 44 19 54 32 54H36L46 62V52C54 48 60 40 60 31C60 18 49 8 36 8H32Z"
+        fill="url(#grad)"/>
+
+  <!-- Network Nodes -->
+  <circle cx="24" cy="31" r="3" fill="white"/>
+  <circle cx="34" cy="24" r="3" fill="white"/>
+  <circle cx="42" cy="35" r="3" fill="white"/>
+
+  <line x1="24" y1="31" x2="34" y2="24" stroke="white" stroke-width="2"/>
+  <line x1="34" y1="24" x2="42" y2="35" stroke="white" stroke-width="2"/>
+  <line x1="24" y1="31" x2="42" y2="35" stroke="white" stroke-width="2"/>
+</svg>
