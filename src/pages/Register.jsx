@@ -11,8 +11,13 @@ import {
 } from "react-icons/fi";
 
 function Register() {
+
   const [showPassword, setShowPassword] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
+
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -36,16 +41,19 @@ function Register() {
       !formData.password ||
       !formData.confirmPassword
     ) {
-
+      setMessage("Please fill all fields");
+      setMessageType("warning");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-
+      setMessage("Passwords do not match");
+      setMessageType("danger");
       return;
     }
 
     try {
+
       const response = await axios.post(
         "https://connecthub-backend-4t3q.onrender.com/api/auth/register",
         {
@@ -55,10 +63,13 @@ function Register() {
         }
       );
 
-      if (
-        response.data.includes === "User Registered Successfully"
-      ) {
+      if (response.status === 200) {
 
+        setMessage(
+          "Registration Successful! Redirecting to Login..."
+        );
+
+        setMessageType("success");
 
         setFormData({
           name: "",
@@ -66,15 +77,20 @@ function Register() {
           password: "",
           confirmPassword: "",
         });
-        navigate("/login");
 
-      } else {
-
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
       }
+
     } catch (error) {
-      console.error(error);
 
+      setMessage(
+        error.response?.data ||
+        "Registration Failed!"
+      );
 
+      setMessageType("danger");
     }
   };
 
@@ -97,7 +113,9 @@ function Register() {
             className="mb-3"
           />
 
-          <h1 className="fw-bold">ConnectHub</h1>
+          <h1 className="fw-bold">
+            ConnectHub
+          </h1>
 
           <p className="fs-5">
             Join the future of communication
@@ -115,7 +133,9 @@ function Register() {
               borderRadius: "20px",
             }}
           >
+
             <div className="text-center mb-4">
+
               <img
                 src="/icons.svg"
                 alt="logo"
@@ -130,13 +150,31 @@ function Register() {
               <p className="text-muted">
                 Register to get started
               </p>
+
             </div>
+
+            {message && (
+              <div
+                className={`alert alert-${messageType} alert-dismissible fade show`}
+                role="alert"
+              >
+                {message}
+
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() =>
+                    setMessage("")
+                  }
+                ></button>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit}>
 
               {/* Name */}
-
               <div className="input-group mb-3">
+
                 <span className="input-group-text">
                   <FiUser />
                 </span>
@@ -146,14 +184,16 @@ function Register() {
                   className="form-control"
                   placeholder="Full Name"
                   name="name"
+                  autoComplete="name"
                   value={formData.name}
                   onChange={handleChange}
                 />
+
               </div>
 
               {/* Email */}
-
               <div className="input-group mb-3">
+
                 <span className="input-group-text">
                   <FiMail />
                 </span>
@@ -163,14 +203,16 @@ function Register() {
                   className="form-control"
                   placeholder="Email Address"
                   name="email"
+                  autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
                 />
+
               </div>
 
               {/* Password */}
-
               <div className="input-group mb-3">
+
                 <span className="input-group-text">
                   <FiLock />
                 </span>
@@ -184,6 +226,7 @@ function Register() {
                   className="form-control"
                   placeholder="Password"
                   name="password"
+                  autoComplete="new-password"
                   value={formData.password}
                   onChange={handleChange}
                 />
@@ -192,20 +235,21 @@ function Register() {
                   type="button"
                   className="btn btn-outline-secondary"
                   onClick={() =>
-                    setShowPassword(!showPassword)
+                    setShowPassword(
+                      !showPassword
+                    )
                   }
                 >
-                  {showPassword ? (
-                    <FiEyeOff />
-                  ) : (
-                    <FiEye />
-                  )}
+                  {showPassword
+                    ? <FiEyeOff />
+                    : <FiEye />}
                 </button>
+
               </div>
 
               {/* Confirm Password */}
-
               <div className="input-group mb-3">
+
                 <span className="input-group-text">
                   <FiLock />
                 </span>
@@ -219,14 +263,16 @@ function Register() {
                   className="form-control"
                   placeholder="Confirm Password"
                   name="confirmPassword"
+                  autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                 />
+
               </div>
 
               {/* Terms */}
-
               <div className="form-check mb-3">
+
                 <input
                   className="form-check-input"
                   type="checkbox"
@@ -240,10 +286,10 @@ function Register() {
                   I agree to the Terms &
                   Conditions
                 </label>
+
               </div>
 
               {/* Register Button */}
-
               <button
                 type="submit"
                 className="btn btn-primary w-100 py-2"
@@ -253,6 +299,7 @@ function Register() {
               </button>
 
               <p className="text-center mt-3 mb-0">
+
                 Already have an account?
 
                 <Link
@@ -261,6 +308,7 @@ function Register() {
                 >
                   Login
                 </Link>
+
               </p>
 
             </form>
@@ -268,6 +316,7 @@ function Register() {
           </div>
 
         </div>
+
       </div>
     </div>
   );
