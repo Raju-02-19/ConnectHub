@@ -1,33 +1,42 @@
-import { useState, useRef } from "react";
+﻿import { useState, useRef, useCallback, memo } from "react";
 import EmojiPicker from "emoji-picker-react";
+
+const emojiPickerStyle = {
+    position: "absolute",
+    bottom: "70px",
+    left: "10px",
+    zIndex: 1000,
+};
 
 const MessageInput = ({ sendMessage }) => {
 
-    const [showEmoji, setShowEmoji] =
-        useState(false);
-
-    const [message, setMessage] =
-        useState("");
-
+    const [showEmoji, setShowEmoji] = useState(false);
+    const [message, setMessage] = useState("");
     const fileRef = useRef(null);
 
-    const onEmojiClick = (emojiData) => {
+    const onEmojiClick = useCallback((emojiData) => {
+        setMessage((prev) => prev + emojiData.emoji);
+    }, []);
 
-        setMessage(
-            (prev) => prev + emojiData.emoji
-        );
-
-    };
-
-    const handleSend = () => {
-
+    const handleSend = useCallback(() => {
         if (!message.trim()) return;
-
         sendMessage(message);
-
         setMessage("");
+    }, [message, sendMessage]);
 
-    };
+    const handleKeyDown = useCallback((e) => {
+        if (e.key === "Enter") {
+            handleSend();
+        }
+    }, [handleSend]);
+
+    const toggleEmoji = useCallback(() => {
+        setShowEmoji((prev) => !prev);
+    }, []);
+
+    const toggleFileInput = useCallback(() => {
+        fileRef.current?.click();
+    }, []);
 
     return (
         <div className="bg-white border-top p-2">
@@ -36,34 +45,23 @@ const MessageInput = ({ sendMessage }) => {
 
                 <button
                     className="btn btn-light"
-                    onClick={() =>
-                        setShowEmoji(!showEmoji)
-                    }
+                    onClick={toggleEmoji}
+                    title="Emoji"
                 >
                     😊
                 </button>
 
                 <button
                     className="btn btn-light"
-                    onClick={() =>
-                        fileRef.current.click()
-                    }
+                    onClick={toggleFileInput}
+                    title="Attach file"
                 >
                     📎
                 </button>
 
                 {showEmoji && (
-                    <div
-                        style={{
-                            position: "absolute",
-                            bottom: "70px",
-                            left: "10px",
-                            zIndex: 1000,
-                        }}
-                    >
-                        <EmojiPicker
-                            onEmojiClick={onEmojiClick}
-                        />
+                    <div style={emojiPickerStyle}>
+                        <EmojiPicker onEmojiClick={onEmojiClick} />
                     </div>
                 )}
 
@@ -78,16 +76,8 @@ const MessageInput = ({ sendMessage }) => {
                     className="form-control"
                     placeholder="Type a message..."
                     value={message}
-                    onChange={(e) =>
-                        setMessage(
-                            e.target.value
-                        )
-                    }
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            handleSend();
-                        }
-                    }}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
                 />
 
                 <button
@@ -103,4 +93,4 @@ const MessageInput = ({ sendMessage }) => {
     );
 };
 
-export default MessageInput;
+export default memo(MessageInput);

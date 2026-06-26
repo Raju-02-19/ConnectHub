@@ -24,33 +24,9 @@ const Home = () => {
 
                     <div className="container-fluid">
 
-                        <h2
-                            className="fw-bold text-white mb-0"
-                        >
+                        <h2 className="navbar-brand fw-bold text-white mb-0">
                             ConnectHub
                         </h2>
-
-                        <div>
-
-                            <button
-                                className="btn btn-light me-2"
-                                onClick={() =>
-                                    navigate("/login")
-                                }
-                            >
-                                Login
-                            </button>
-
-                            <button
-                                className="btn btn-outline-light"
-                                onClick={() =>
-                                    navigate("/register")
-                                }
-                            >
-                                Register
-                            </button>
-
-                        </div>
 
                     </div>
 
@@ -69,17 +45,13 @@ const Home = () => {
 
                     <div className="col-lg-6 text-center text-lg-start">
 
-                        <h1
-                            className="display-3 fw-bold text-white"
-                        >
+                        <h1 className="display-3 fw-bold text-white">
                             Welcome to
                             <br />
                             ConnectHub
                         </h1>
 
-                        <p
-                            className="lead text-light mt-4"
-                        >
+                        <p className="lead text-light mt-4">
                             Chat with friends,
                             share memories,
                             stay connected,
@@ -87,22 +59,18 @@ const Home = () => {
                             social network experience.
                         </p>
 
-                        <div className="mt-4">
+                        <div className="d-flex flex-column flex-sm-row gap-3 mt-4 justify-content-center justify-content-lg-start">
 
                             <button
-                                className="btn btn-light btn-lg me-3 mb-2"
-                                onClick={() =>
-                                    navigate("/login")
-                                }
+                                className="btn btn-light btn-lg"
+                                onClick={() => navigate("/login")}
                             >
                                 Login
                             </button>
 
                             <button
-                                className="btn btn-outline-light btn-lg mb-2"
-                                onClick={() =>
-                                    navigate("/register")
-                                }
+                                className="btn btn-outline-light btn-lg"
+                                onClick={() => navigate("/register")}
                             >
                                 Register
                             </button>

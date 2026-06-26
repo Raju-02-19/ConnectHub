@@ -1,70 +1,79 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import api from "../services/api";
 import MainLayout from "../layouts/MainLayout";
 import { useNavigate } from "react-router-dom";
 
 const Contacts = () => {
+  const [friends, setFriends] = useState([]);
+  const [search, setSearch] = useState("");
+  const abortControllerRef = useRef(null);
 
-const [friends, setFriends] = useState([]);
-const [search, setSearch] = useState("");
+  const navigate = useNavigate();
 
-const navigate = useNavigate();
-
-useEffect(() => {
-    fetchFriends();
-}, []);
-
-const fetchFriends = async () => {
+  const fetchFriends = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
 
     try {
+      const myCode = localStorage.getItem("userCode");
+      if (!myCode) {
+        setFriends([]);
+        return;
+      }
 
-        const myCode =
-            localStorage.getItem("userCode");
+      const response = await api.get(
+        `/friends/list/${myCode}`,
+        { signal: abortControllerRef.current.signal }
+      );
 
-        const response =
-            await axios.get(
-                `https://connecthub-backend-4t3q.onrender.com/api/friends/list/${myCode}`
-            );
+      const friendsList = Array.isArray(response.data)
+        ? response.data
+        : [];
 
-        const friendsList =
-            response.data;
+      const usersData = await Promise.all(
+        friendsList.map(async (friend) => {
+          const friendCode =
+            friend.user1 === myCode ? friend.user2 : friend.user1;
 
-        const usersData = [];
+          const userResponse = await api.get(
+            `/users/code/${friendCode}`,
+            { signal: abortControllerRef.current.signal }
+          );
 
-        for (let friend of friendsList) {
+          return userResponse.data;
+        })
+      );
 
-            const friendCode =
-                friend.user1 === myCode
-                    ? friend.user2
-                    : friend.user1;
-
-            const userResponse =
-                await axios.get(
-                    `https://connecthub-backend-4t3q.onrender.com/api/users/code/${friendCode}`
-                );
-
-            usersData.push(
-                userResponse.data
-            );
-        }
-
-        setFriends(usersData);
-
+      setFriends(usersData);
     } catch (error) {
-
-        console.error(error);
-
+      if (
+        error.name === "CanceledError" ||
+        error.message === "canceled"
+      ) {
+        console.warn("Contacts fetch canceled");
+      } else {
+        console.error("Error fetching contacts:", error);
+      }
     }
-};
+  }, []);
 
-const filteredFriends =
-    friends.filter((user) =>
-        user.name
-            ?.toLowerCase()
-            .includes(
-                search.toLowerCase()
-            )
-    );
+  useEffect(() => {
+    fetchFriends();
+
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, [fetchFriends]);
+
+const filteredFriends = useMemo(
+    () =>
+        friends.filter((user) =>
+            user.name
+                ?.toLowerCase()
+                .includes(search.toLowerCase())
+        ),
+    [friends, search]
+);
 
 return (
 

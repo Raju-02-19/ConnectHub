@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../services/api";
 import {
   FiUser,
   FiMail,
@@ -25,15 +25,18 @@ function Register() {
     confirmPassword: "",
   });
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const [loading, setLoading] = useState(false);
+  const controllerRef = useRef(null);
 
-  const handleSubmit = async (e) => {
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+
+    if (loading) return;
 
     if (
       !formData.name ||
@@ -52,47 +55,55 @@ function Register() {
       return;
     }
 
-    try {
+    setLoading(true);
 
-      const response = await axios.post(
-        "https://connecthub-backend-4t3q.onrender.com/api/auth/register",
+    try {
+      // abort any previous pending request
+      try {
+        controllerRef.current?.abort();
+      } catch (err) { console.warn('Abort error:', err); }
+
+      const controller = new AbortController();
+      controllerRef.current = controller;
+
+      const response = await api.post(
+        "/auth/register",
         {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-        }
+        },
+        { signal: controller.signal }
       );
 
       if (response.status === 200) {
-
-        setMessage(
-          "Registration Successful! Redirecting to Login..."
-        );
-
+        setMessage("Registration Successful! Redirecting to Login...");
         setMessageType("success");
-
-        setFormData({
-          name: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
-        });
-
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
+        setFormData({ name: "", email: "", password: "", confirmPassword: "" });
+        setTimeout(() => navigate("/login"), 2000);
       }
-
     } catch (error) {
-
-      setMessage(
-        error.response?.data ||
-        "Registration Failed!"
-      );
-
-      setMessageType("danger");
+      if (error.name === "CanceledError" || error.message === "canceled") {
+        console.warn("Registration request canceled");
+      } else {
+        console.error("Registration error:", error);
+        const errorData = error.response?.data;
+        setMessage(errorData?.message || errorData?.error || "Registration Failed!");
+        setMessageType("danger");
+      }
+    } finally {
+      setLoading(false);
+      controllerRef.current = null;
     }
-  };
+  }, [formData, navigate, loading]);
+
+  useEffect(() => {
+    return () => {
+      try {
+        controllerRef.current?.abort();
+      } catch (err) { console.warn('Abort error:', err); }
+    };
+  }, []);
 
   return (
     <div className="container-fluid min-vh-100">

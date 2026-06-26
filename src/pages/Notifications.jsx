@@ -1,68 +1,62 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import api from "../services/api";
 
 const Notifications = () => {
-
   const [requests, setRequests] = useState([]);
+  const abortControllerRef = useRef(null);
+
+  const fetchRequests = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const userCode = localStorage.getItem("userCode");
+      if (!userCode) {
+        setRequests([]);
+        return;
+      }
+
+      const response = await api.get(
+        `/friends/requests/${userCode}`,
+        { signal: abortControllerRef.current.signal }
+      );
+
+      setRequests(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      if (
+        error.name === "CanceledError" ||
+        error.message === "canceled"
+      ) {
+        console.warn("Notifications fetch canceled");
+      } else {
+        console.error("Error fetching notifications:", error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchRequests();
-  }, []);
 
-  const fetchRequests = async () => {
-
-    try {
-
-      const userCode =
-        localStorage.getItem("userCode");
-
-      const response = await axios.get(
-        `https://connecthub-backend-4t3q.onrender.com/api/friends/requests/${userCode}`
-      );
-
-      setRequests(response.data);
-
-    } catch (error) {
-
-      console.error(error);
-
-    }
-  };
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, [fetchRequests]);
 
   const acceptRequest = async (requestId) => {
-
     try {
-
-      await axios.put(
-        `https://connecthub-backend-4t3q.onrender.com/api/friends/accept/${requestId}`
-      );
-
-
-
+      await api.put(`/friends/accept/${requestId}`);
       fetchRequests();
-
     } catch (error) {
-
-      console.error(error);
-
+      console.error("Error accepting request:", error);
     }
   };
 
   const rejectRequest = async (requestId) => {
-
     try {
-
-      await axios.put(
-        `https://connecthub-backend-4t3q.onrender.com/api/friends/reject/${requestId}`
-      );
-
-
+      await api.put(`/friends/reject/${requestId}`);
       fetchRequests();
-
     } catch (error) {
-
-      console.error(error);
-
+      console.error("Error rejecting request:", error);
     }
   };
 

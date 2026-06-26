@@ -1,10 +1,18 @@
-import React from "react";
+import React, { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
-    const handleLogout = () => {
+    const navigate = useNavigate();
+
+    const handleLogout = useCallback(() => {
         localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("userCode");
+        localStorage.removeItem("userName");
+        localStorage.removeItem("userEmail");
         navigate("/login");
-    };
+    }, [navigate]);
+
     return (
         <div className="container py-4">
             <div className="card shadow border-0">
@@ -45,7 +53,10 @@ const Settings = () => {
                             ℹ️ About
                         </button>
 
-                        <button className="list-group-item list-group-item-action text-danger">
+                        <button
+                            className="list-group-item list-group-item-action text-danger"
+                            onClick={handleLogout}
+                        >
                             🚪 Logout
                         </button>
 

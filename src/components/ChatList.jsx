@@ -1,9 +1,8 @@
-import React from 'react'
+﻿import React, { memo } from "react";
 
 const ChatList = () => {
   return (
     <div>ChatList</div>
-    
-)
+  )
 }
-export default ChatList;
+export default memo(ChatList);

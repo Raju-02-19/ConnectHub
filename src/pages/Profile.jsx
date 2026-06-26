@@ -1,9 +1,21 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
-
     const navigate = useNavigate();
+
+    const userName = useMemo(
+        () => localStorage.getItem("userName") || "Unknown",
+        []
+    );
+    const userCode = useMemo(
+        () => localStorage.getItem("userCode") || "N/A",
+        []
+    );
+    const userEmail = useMemo(
+        () => localStorage.getItem("userEmail") || "Not provided",
+        []
+    );
 
     return (
         <div className="container mt-5">
@@ -16,17 +28,17 @@ const Profile = () => {
 
                 <p>
                     <strong>Name:</strong>{" "}
-                    {localStorage.getItem("userName")}
+                    {userName}
                 </p>
 
                 <p>
                     <strong>User Code:</strong>{" "}
-                    {localStorage.getItem("userCode")}
+                    {userCode}
                 </p>
 
                 <p>
                     <strong>Email:</strong>{" "}
-                    {localStorage.getItem("userEmail")}
+                    {userEmail}
                 </p>
 
                 <button

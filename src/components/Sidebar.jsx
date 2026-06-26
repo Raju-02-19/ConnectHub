@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import api from "../services/api";
 
 const Sidebar = ({
     setSelectedChat,
@@ -9,93 +9,113 @@ const Sidebar = ({
 
     const [search, setSearch] = useState("");
     const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const controllerRef = useRef(null);
+
+    const fetchUsers = useCallback(async () => {
+        setLoading(true);
+
+        const myCode = localStorage.getItem("userCode");
+        if (!myCode) {
+            setUsers([]);
+            setLoading(false);
+            return;
+        }
+
+        try {
+            controllerRef.current?.abort();
+        } catch (err) {
+            console.warn("Abort error:", err);
+        }
+
+        const controller = new AbortController();
+        controllerRef.current = controller;
+
+        try {
+            const friendsResponse = await api.get(
+                `/friends/list/${myCode}`,
+                { signal: controller.signal }
+            );
+
+            const friends = Array.isArray(friendsResponse.data)
+                ? friendsResponse.data
+                : [];
+
+            const usersData = await Promise.all(
+                friends.map(async (friend) => {
+                    const friendCode =
+                        friend.user1 === myCode
+                            ? friend.user2
+                            : friend.user1;
+
+                    const [userResponse, msgResponse, unreadResponse] =
+                        await Promise.all([
+                            api.get(
+                                `/users/code/${friendCode}`,
+                                { signal: controller.signal }
+                            ),
+                            api.get(
+                                `/messages/chat/${myCode}/${friendCode}`,
+                                { signal: controller.signal }
+                            ),
+                            api.get(
+                                `/messages/unread/${friendCode}/${myCode}`,
+                                { signal: controller.signal }
+                            )
+                        ]);
+
+                    const messages = Array.isArray(msgResponse.data)
+                        ? msgResponse.data
+                        : [];
+
+                    return {
+                        ...userResponse.data,
+                        lastMessage:
+                            messages.length > 0
+                                ? messages[messages.length - 1].message
+                                : "No messages yet",
+                        unreadCount: unreadResponse.data || 0,
+                    };
+                })
+            );
+
+            setUsers(usersData);
+        } catch (error) {
+            if (error.name === "CanceledError" || error.message === "canceled") {
+                console.warn("Sidebar fetch canceled");
+            } else {
+                console.error("Error fetching friends:", error);
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
         fetchUsers();
-    }, []);
 
-    const fetchUsers = async () => {
+        return () => {
+            controllerRef.current?.abort();
+        };
+    }, [fetchUsers]);
 
-        try {
+    const filteredUsers = useMemo(
+        () => users.filter((user) =>
+            user.name?.toLowerCase().includes(
+                search.toLowerCase()
+            )
+        ),
+        [users, search]
+    );
 
-            const myCode =
-                localStorage.getItem("userCode");
+    const userName = useMemo(
+        () => localStorage.getItem("userName"),
+        []
+    );
 
-            const friendsResponse =
-                await axios.get(
-                    `https://connecthub-backend-4t3q.onrender.com/api/friends/list/${myCode}`
-                );
-
-            const friends =
-                friendsResponse.data;
-            ;
-            ;
-
-            const usersData = [];
-
-            for (let friend of friends) {
-
-                const friendCode =
-                    friend.user1 === myCode
-                        ? friend.user2
-                        : friend.user1;
-
-                const userResponse =
-                    await axios.get(
-                        `https://connecthub-backend-4t3q.onrender.com/api/users/code/${friendCode}`
-                    );
-
-                const userData =
-                    userResponse.data;
-
-                const msgResponse =
-                    await axios.get(
-                        `https://connecthub-backend-4t3q.onrender.com/api/messages/chat/${myCode}/${friendCode}`
-                    );
-
-                const messages =
-                    msgResponse.data;
-
-                let lastMessage =
-                    "No messages yet";
-
-                if (messages.length > 0) {
-
-                    lastMessage =
-                        messages[messages.length - 1]
-                            .message;
-                }
-
-                const unreadResponse =
-                    await axios.get(
-                        `https://connecthub-backend-4t3q.onrender.com/api/messages/unread/${friendCode}/${myCode}`
-                    );
-
-                const unreadCount =
-                    unreadResponse.data;
-
-                usersData.push({
-                    ...userData,
-                    lastMessage,
-                    unreadCount,
-                });
-            }
-            ;
-            setUsers(usersData);
-
-        } catch (error) {
-
-            console.error(
-                "Error fetching friends:",
-                error
-            );
-
-        }
-    };
-    const filteredUsers = users.filter((user) =>
-        user.name?.toLowerCase().includes(
-            search.toLowerCase()
-        )
+    const userCode = useMemo(
+        () => localStorage.getItem("userCode"),
+        []
     );
 
     return (
@@ -115,11 +135,11 @@ const Sidebar = ({
                 <h4 className="mb-0">ChatApp</h4>
                 <div className="mt-3 mb-3">
                     <h6 className="mb-1">
-                        {localStorage.getItem("userName")}
+                        {userName}
                     </h6>
 
                     <small className="text-muted">
-                        {localStorage.getItem("userCode")}
+                        {userCode}
                     </small>
                 </div>
 
@@ -143,8 +163,8 @@ const Sidebar = ({
                                 localStorage.getItem("userCode");
 
 
-                            await axios.put(
-                                `https://connecthub-backend-4t3q.onrender.com/api/users/offline/${userCode}`
+                            await api.put(
+                                `/users/offline/${userCode}`
                             );
 
                         } catch (error) {
@@ -176,7 +196,16 @@ const Sidebar = ({
             />
 
             {/* Users */}
-            {filteredUsers.map((user) => (
+            {loading ? (
+                <div className="text-center py-4">
+                    Loading chats...
+                </div>
+            ) : filteredUsers.length === 0 ? (
+                <div className="text-center py-4">
+                    No chats available.
+                </div>
+            ) : (
+                filteredUsers.map((user) => (
                 <div
                     key={user.id}
                     className="card mb-2 border-0 shadow-sm"
@@ -262,15 +291,7 @@ const Sidebar = ({
 
                     </div>
                 </div>
-            ))}
-
-            {filteredUsers.length === 0 && (
-                <div className="text-center mt-4">
-                    <small>
-                        No users found
-                    </small>
-                </div>
-            )}
+            ))) }
         </div>
     );
 };

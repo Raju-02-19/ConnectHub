@@ -1,92 +1,79 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import api from "../services/api";
 
 const EditProfile = () => {
+  const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
+  const [status, setStatus] = useState("ONLINE");
+  const [profilePic, setProfilePic] = useState("");
+  const [loading, setLoading] = useState(false);
+  const abortControllerRef = useRef(null);
+  const userIdRef = useRef(null);
 
-    const [name, setName] = useState("");
-    const [bio, setBio] = useState("");
-    const [status, setStatus] = useState("ONLINE");
-    const [profilePic, setProfilePic] = useState("");
+  const loadProfile = useCallback(async () => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
 
-    useEffect(() => {
-        loadProfile();
-    }, []);
+    try {
+      const userCode = localStorage.getItem("userCode");
+      if (!userCode) return;
 
-    const loadProfile = async () => {
+      const response = await api.get(
+        `/users/code/${userCode}`,
+        { signal: abortControllerRef.current.signal }
+      );
 
-        try {
+      const data = response.data || {};
+      userIdRef.current = data.id;
+      setName(data.name || "");
+      setBio(data.bio || "");
+      setStatus(data.status || "ONLINE");
+      setProfilePic(data.profilePic || "");
+    } catch (error) {
+      if (
+        error.name === "CanceledError" ||
+        error.message === "canceled"
+      ) {
+        console.warn("EditProfile load canceled");
+      } else {
+        console.error("Error loading profile:", error);
+      }
+    }
+  }, []);
 
-            const userCode =
-                localStorage.getItem("userCode");
+  useEffect(() => {
+    loadProfile();
 
-            const response =
-                await axios.get(
-                    `https://connecthub-backend-4t3q.onrender.com/api/users/code/${userCode}`
-                );
-
-            setName(
-                response.data.name || ""
-            );
-
-            setBio(
-                response.data.bio || ""
-            );
-
-            setStatus(
-                response.data.status || "ONLINE"
-            );
-
-            setProfilePic(
-                response.data.profilePic || ""
-            );
-
-        } catch (error) {
-
-            console.error(error);
-
-        }
+    return () => {
+      abortControllerRef.current?.abort();
     };
+  }, [loadProfile]);
 
-    const saveProfile = async () => {
+  const saveProfile = async () => {
+    if (!userIdRef.current) {
+      console.warn("No user id available for profile update");
+      return;
+    }
 
-        try {
-
-            const userCode =
-                localStorage.getItem("userCode");
-
-            const userResponse =
-                await axios.get(
-                    `https://connecthub-backend-4t3q.onrender.com/api/users/code/${userCode}`
-                );
-
-            const userId =
-                userResponse.data.id;
-
-            await axios.put(
-                `https://connecthub-backend-4t3q.onrender.com/api/users/update/${userId}`,
-                {
-                    name,
-                    bio,
-                    status,
-                    profilePic
-                }
-            );
-
-            localStorage.setItem(
-                "userName",
-                name
-            );
-
-
-
-        } catch (error) {
-
-            console.error(error);
-
-
-
+    try {
+      setLoading(true);
+      await api.put(
+        `/users/update/${userIdRef.current}`,
+        {
+          name,
+          bio,
+          status,
+          profilePic,
         }
-    };
+      );
+
+      localStorage.setItem("userName", name);
+    } catch (error) {
+      console.error("Error saving profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
     return (
         <div className="container mt-5">

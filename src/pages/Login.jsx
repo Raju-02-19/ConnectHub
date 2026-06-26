@@ -1,22 +1,25 @@
-import { useState } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { FiMail, FiLock, FiEye, FiEyeOff, FiLogIn } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
     const navigate = useNavigate();
+    const controllerRef = useRef(null);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const isValidEmail =
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const isValidEmail = useMemo(
+        () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
+        [email]
+    );
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
 
         if (!email || !password) {
@@ -31,13 +34,21 @@ function Login() {
             return;
         }
 
-        try {
+        setLoading(true);
 
-            const response = await axios.post(
-                "https://connecthub-backend-4t3q.onrender.com/api/auth/login",
+        try {
+            controllerRef.current?.abort();
+            const controller = new AbortController();
+            controllerRef.current = controller;
+
+            const response = await api.post(
+                "/auth/login",
                 {
                     email,
                     password,
+                },
+                {
+                    signal: controller.signal,
                 }
             );
 
@@ -45,38 +56,14 @@ function Login() {
                 response.data.message ===
                 "Login Successful"
             ) {
-
                 localStorage.clear();
+                localStorage.setItem("token", response.data.token);
+                localStorage.setItem("userId", response.data.id);
+                localStorage.setItem("userCode", response.data.userCode);
+                localStorage.setItem("userName", response.data.name);
+                localStorage.setItem("userEmail", response.data.email);
 
-                localStorage.setItem(
-                    "token",
-                    response.data.token
-                );
-
-                localStorage.setItem(
-                    "userId",
-                    response.data.id
-                );
-
-                localStorage.setItem(
-                    "userCode",
-                    response.data.userCode
-                );
-
-                localStorage.setItem(
-                    "userName",
-                    response.data.name
-                );
-
-                localStorage.setItem(
-                    "userEmail",
-                    response.data.email
-                );
-
-                setMessage(
-                    "Login Successful! Redirecting..."
-                );
-
+                setMessage("Login Successful! Redirecting...");
                 setMessageType("success");
 
                 setTimeout(() => {
@@ -84,24 +71,32 @@ function Login() {
                     setPassword("");
                     navigate("/dashboard");
                 }, 1500);
-
             } else {
-
                 setMessage("Invalid Credentials");
                 setMessageType("danger");
-
             }
-
         } catch (error) {
-
-            setMessage(
-                error.response?.data ||
-                "Login Failed!"
-            );
-
-            setMessageType("danger");
+            if (error.name === "CanceledError" || error.message === "canceled") {
+                console.warn("Login request cancelled");
+            } else {
+                console.error("Login error:", error);
+                setMessage(
+                    error.response?.data?.message ||
+                    "Login Failed!"
+                );
+                setMessageType("danger");
+            }
+        } finally {
+            setLoading(false);
+            controllerRef.current = null;
         }
-    };
+    }, [email, password, isValidEmail, navigate]);
+
+    useEffect(() => {
+        return () => {
+            controllerRef.current?.abort();
+        };
+    }, []);
 
 
     return (
@@ -243,9 +238,10 @@ function Login() {
                             <button
                                 type="submit"
                                 className="btn btn-primary w-100 py-2"
+                                disabled={loading}
                             >
                                 <FiLogIn className="me-2" />
-                                Login
+                                {loading ? "Logging in..." : "Login"}
                             </button>
 
                             <p className="text-center mt-3">

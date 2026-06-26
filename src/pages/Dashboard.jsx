@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import ChatBox from "../components/ChatBox";
@@ -7,7 +7,6 @@ import BottomNav from "../components/BottomNav";
 
 const Dashboard = () => {
 
-
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -15,16 +14,16 @@ const Dashboard = () => {
     const [selectedChat, setSelectedChat] = useState(null);
     const [activeTab, setActiveTab] = useState("chats");
 
+    const userCode = useMemo(
+        () => localStorage.getItem("userCode"),
+        []
+    );
+
     useEffect(() => {
-
-        const userCode =
-            localStorage.getItem("userCode");
-
         if (!userCode) {
             navigate("/login");
         }
-
-    }, [navigate]);
+    }, [navigate, userCode]);
     useEffect(() => {
 
         if (location.state?.selectedUser) {

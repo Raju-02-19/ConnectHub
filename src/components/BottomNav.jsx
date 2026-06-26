@@ -1,45 +1,49 @@
+import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+
+const navItems = [
+  {
+    key: "chats",
+    icon: "bi-chat-dots-fill",
+    path: "/dashboard",
+  },
+  {
+    key: "contacts",
+    icon: "bi-people-fill",
+    path: "/contacts",
+  },
+  {
+    key: "calls",
+    icon: "bi-telephone-fill",
+    path: "/calls",
+  },
+  {
+    key: "notifications",
+    icon: "bi-bell-fill",
+    path: "/notifications",
+  },
+  {
+    key: "profile",
+    icon: "bi-person-circle",
+    path: "/profile",
+  },
+  {
+    key: "settings",
+    icon: "bi-gear-fill",
+    path: "/settings",
+  },
+];
 
 const BottomNav = ({ activeTab, setActiveTab }) => {
   const navigate = useNavigate();
 
-  const navItems = [
-    {
-      key: "chats",
-      icon: "bi-chat-dots-fill",
-      path: "/dashboard",
+  const handleNavigation = useCallback(
+    (item) => {
+      setActiveTab(item.key);
+      navigate(item.path);
     },
-    {
-      key: "contacts",
-      icon: "bi-people-fill",
-      path: "/contacts",
-    },
-    {
-      key: "calls",
-      icon: "bi-telephone-fill",
-      path: "/calls",
-    },
-    {
-      key: "notifications",
-      icon: "bi-bell-fill",
-      path: "/notifications",
-    },
-    {
-      key: "profile",
-      icon: "bi-person-circle",
-      path: "/profile",
-    },
-    {
-      key: "settings",
-      icon: "bi-gear-fill",
-      path: "/settings",
-    }
-  ];
-
-  const handleNavigation = (item) => {
-    setActiveTab(item.key);
-    navigate(item.path);
-  };
+    [navigate, setActiveTab]
+  );
 
   return (
     <>
